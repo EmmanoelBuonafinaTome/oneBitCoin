@@ -3,7 +3,6 @@ import { StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import CurrentPrice from './src/components/CurrentPrice';
 import HistoryGraphic from './src/components/HistoryGraphic';
 import QuotationsList from './src/components/QuotationsList';
-import QuotationsItems from './src/components/QuotationsList/QuotationsItems';
 
 const addZero = (number) => {
   if(number <= 9){
@@ -24,7 +23,7 @@ const url = (qtdDays) => {
 };
 
 const getListCoins = async (url) => {
-  let response = await fectch(url);
+  let response = await fetch(url);
   let returnApi = await response.json();
   let selectListQuotations = returnApi.bpi;
   const queryCoinsList = Object.keys(selectListQuotations).map((key)=>{
@@ -38,7 +37,7 @@ const getListCoins = async (url) => {
 };
 
 const getPriceCoinsGraphic = async (url) => {
-  let responseG = await fectch(url);
+  let responseG = await fetch(url);
   let returnApiG = await responseG.json();
   let selectListQuotationsG = returnApiG.bpi;
   const queryCoinsList = Object.keys(selectListQuotationsG).map((key)=>{
@@ -52,23 +51,27 @@ export default function App() {
 
   const [coinsList, setCoinsList] = useState([]);
   const [CoinsGraphicList, setCoinsGraphicList] = useState([0]);
-  const [days, setDays] = useState();
+  const [days, setDays] = useState(30);
   const [updateData, setUpdateData] = useState(true);
+  const [price, setPrice] = useState();
 
   const updateDay = (number) => {
     setDays(number);
     setUpdateData(true);
   };
 
-  useEffect(() => {
+  const priceCotation = () => {
+    setPrice(CoinsGraphicList.pop())
+  };
 
+  useEffect(() => {
     getListCoins(url(days)).then((data) => {
       setCoinsList(data)
     });
-
     getPriceCoinsGraphic(url(days)).then((dataG) => {
       setCoinsGraphicList(dataG)
     });
+    priceCotation();
     if(updateData){
       setUpdateData(false);
     };
@@ -81,10 +84,9 @@ export default function App() {
         backgroundColor="#f50d41"
         barStyle="dark-content"
       />
-      <CurrentPrice />
-      <HistoryGraphic />
-      <QuotationsList />
-      <QuotationsItems />
+      <CurrentPrice lastCotation={price} />
+      <HistoryGraphic infoDataGraphic={CoinsGraphicList} />
+      <QuotationsList filterDay={updateDay} listTransactions={coinsList}/>
     </SafeAreaView>
   );
 }
